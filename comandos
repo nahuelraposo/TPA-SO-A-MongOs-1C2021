@@ -1,0 +1,247 @@
+-------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------Estabilidad General
+
+Iniciar los módulos en el orden definido por el grupo en la primer vuelta con el algoritmo de planificación FIFO y en la segunda con RR
+Ejecutar los siguientes comandos en la consola del Discordiador.
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota1.txt 9|9 0|0 5|5
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota2.txt 4|0 2|6 8|2
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota3.txt 2|3 5|8 5|3
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota4.txt 0|9 4|4 9|0
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/ES3_Patota5.txt 0|2 9|6 3|5
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+Esperar el final de la planificación listando los tripulantes cada cierto tiempo.
+Resultados Esperados
+Deberán terminar todos los tripulantes.
+No deben encontrarse ni esperas activas ni memory leaks.
+Las patotas 3 y 4 deberán ejecutar sin verse afectadas por los encolamientos en E/S.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------DISCORDIADOR
+-------------------------------------------------------CPU
+Iniciar los módulos en el orden definido por el grupo en la primer vuelta con el algoritmo
+de planificación FIFO y en la segunda con RR en Discordiador
+Ejecutar los siguientes comandos en la consola del Discordiador.
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Finales/CPU_Patota1.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/CPU_Patota2.txt 1|0
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+Esperar que transcurran 5 ciclos de  CPU.
+PAUSAR_PLANIFICACION
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/CPU_Patota3.txt 0|1
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+Esperar el fin de todas las tareas de los tripulantes.
+Resultados Esperados
+Deberán terminar todos los tripulantes
+En el caso de FIFO una vez que un tripulante empieza a ejecutar nunca debe dejar de estar
+en ejecución hasta que termine sus tareas.
+En el caso de RR los tripulantes deberán ir alternándose cada 3 ciclos de CPU.
+
+
+---------------------------------------------------DISCORDIADOR
+--------------------------------------------------------E/S
+
+Iniciar los módulos en el orden definido por el grupo en la primer vuelta con el algoritmo
+de planificación FIFO y en la segunda con RR en Discordiador
+Ejecutar los siguientes comandos en la consola del Discordiador.
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Finales/IO_Patota1.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/IO_Patota2.txt 1|0
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/IO_Patota3.txt 0|1
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+Esperar el fin de todas las tareas de los tripulantes.
+Resultados Esperados
+Todos los tripulantes terminan su ejecución.
+En FIFO al llegar los tripulantes de la patota 1 a su tarea de E/S se van a encolar y
+van a generar que los tripulantes de las otras 2 patotas tengan que esperar.
+En RR debe llegar primero el tripulante de la patota 2 a realizar su tarea de E/S
+antes que los tripulantes de la patota 1.
+Se liberan los bloques del archivo Basura.ims generado por el tripulante de la patota 2.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------RAM
+---------------------------------------------------SEGMENTACION
+
+Iniciar los módulos en el orden definido por el grupo, en la primer vuelta configurando
+el algoritmo en First Fit (FF) y en la segunda corrida con Best Fit (BF) en Mi-RAM HQ
+En el módulo discordiador ejecutar los siguientes comandos
+INICIAR_PATOTA 4 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaA.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaC.txt 3|3
+INICIAR_PLANIFICACION
+
+Enviar la señal para el DUMP de la memoria. (SIGUSR2)
+LISTAR_TRIPULANTES
+
+Una vez iniciada la planificación esperar 10 ciclos de CPU y ejecutar los siguientes comandos.
+EXPULSAR_TRIPULANTE 1
+EXPULSAR_TRIPULANTE 3
+
+LISTAR_TRIPULANTES
+Enviar la señal para compactar la memoria. (SIGUSR1)
+
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Finales/SEG_PatotaB.txt 5|5
+LISTAR_TRIPULANTES
+
+Enviar nuevamente la señal para el DUMP de la memoria.
+Esperar el fin de las tareas de los tripulantes.
+Enviar nuevamente la señal para el DUMP de la memoria.
+Enviar la señal para compactar la memoria
+Enviar nuevamente la señal para el DUMP de la memoria.
+Resultados Esperados
+Al momento de finalizar la patota C quedan varios segmentos libres correspondientes a
+las tareas, TCB y PCB.
+Al momento de iniciar la patota B:
+Con FF debe quedar un hueco libre al lado del PCB ya que debería ocupar el espacio del tripulante A1.
+Con BF el PCB de la patota B ocupará el espacio del PCB de la patota C por lo que no habrá
+un hueco en ese lugar
+Al momento de cargar las tareas se debe compactar la memoria para generar el hueco libre
+para las tareas de la patota B.
+Los tripulantes finalizan su ejecución y quedan todos los segmentos libres.
+Al compactar la memoria los segmentos se unifican y se pueden validar al ver el log del dump
+de la memoria.
+
+
+-------------------------------------------------------RAM
+---------------------------------------------------PAGINACION
+
+Iniciar los módulos en el orden definido por el grupo, en la primer vuelta ejecutando
+el algoritmo de LRU y en la segunda con el algoritmo CLOCK en Mi-RAM HQ
+En el módulo discordiador crear las siguientes patotas e inicia la planificación
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaA.txt 1|1
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaB.txt 3|3
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/PAG_PatotaC.txt 5|5
+INICIAR_PLANIFICACION
+
+Controlar los reemplazos de páginas al momento de guardar los datos mientras se inicia
+la patota y sus tripulantes.
+Mientras ejecutan los tripulantes verificar cómo se realizan las peticiones de memoria y
+controlar los reemplazos de página para obtener las tareas.
+Finalizar todos los tripulantes y verificar que la memoria queda completamente limpia.
+Resultados Esperados
+Al llegar las 3 patotas a Ready, Patota A y Patota B deberían estar en swap, y patota C
+ocupar la totalidad de los marcos
+Ejecuta el tripulante de la patota A, reemplazando dos páginas de C
+Ejecuta el tripulante de la patota B, reemplazando dos páginas de C
+Ejecuta el tripulante de la patota C, reemplazando dos páginas de A
+Ejecuta el tripulante de la patota A, reemplazando dos páginas de B
+Ejecuta el tripulante de la patota B, reemplazando dos páginas de C
+Ejecuta el tripulante de la patota C, reemplazando dos páginas de A
+Ejecuta el tripulante de la patota A, reemplazando dos páginas de B
+Finaliza A
+Ejecuta el tripulante de la patota B, aprovechando los frames dejados por A
+Finaliza B
+C utiliza todas las páginas de memoria hasta finalizar.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------FS
+---------------------------------------------------File System
+
+Iniciar los módulos en el orden definido por el grupo
+En el módulo discordiador crear las siguientes patotas e inicia la planificación
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaA.txt
+INICIAR_PATOTA 3 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaB.txt
+INICIAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+Controlar las escrituras de los recursos en los bloques
+Mientras ejecutan los tripulantes verificar cómo se realizan las peticiones de I/O y que se
+bloqueen los tripulantes en el orden y tiempo estipulado
+Finalizar todos los tripulantes y verificar que la sincronización de datos sea correcta
+Volver a levantar el filesystem y correr esta prueba, y verificar que la información no se
+sobreescriba
+Resultados Esperados
+El File system se formatea y crea correctamente
+Se crean correctamente 60 instancias de cada recurso al terminar la primera ejecución
+Se crean correctamente 6 bitácoras
+Al tirar abajo el módulo y volver a levantarlo, esos recursos deben seguir ahí
+Luego de la segunda ejecución debería haber 120 instancias de cada recurso
+
+
+-------------------------------------------------------FS
+---------------------------------------------------Sabotajes
+
+Iniciar los módulos en el orden definido por el grupo utilizando el mismo FS de la prueba
+de File System después de haber ejecutado las pruebas.
+En el módulo discordiador crear las siguientes patotas e inicia la planificación
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/FSCK_PatotaA.txt 0|0
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/FSCK_PatotaB.txt 8|0
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/FSCK_PatotaC.txt 8|8
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/FSCK_PatotaD.txt 0|8
+INICIAR_PLANIFICACION
+
+Realizar un sabotaje (definido por el ayudante)
+Enviar la señal de sabotaje y esperar la resolución del sabotaje
+El ayudante podrá repetir esta prueba cuantas veces considere necesarias sin necesidad de reiniciar
+el módulo.
+Resultados Esperados
+Se detectan y resuelven correctamente los sabotajes.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+Discordiador
+
+ESTAS_ON Mi-RAM-HQ
+ESTAS_ON i-Mongo-Store
+INICIAR_PATOTA 5 /home/utnso/tareas/tareasPatota5.txt 1|1 3|4
+LISTAR_TRIPULANTES
+EXPULSAR_TRIPULANTE
+INICIAR_PLANIFICACION
+PAUSAR_PLANIFICACION
+OBTENER_BITACORA
+
+
+TEST
+
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 2|1
+INICIAR_PLANIFICACION
+PAUSAR_PLANIFICACION
+OBTENER_BITACORA 1
+
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 2|1 3|4
+INICIAR_PLANIFICACION
+PAUSAR_PLANIFICACION
+
+INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatotaPlantas.txt 8|1 3|4
+INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota3.txt 8|1 3|4
+INICIAR_PATOTA 2 /home/utnso/tareas/tareasPatota2.txt 8|10 15|2
+INICIAR_PLANIFICACION
+PAUSAR_PLANIFICACION
+LISTAR_TRIPULANTES
+
+INICIAR_PATOTA 2 /home/utnso/tareasPatotaPlantas.txt 8|1 3|4
+
+INICIAR_PATOTA 3 /home/utnso/tareas/tareasPatota1.txt 1|1 3|4
+
+
+INICIAR_PATOTA 2 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 1|1 3|4
+EXPULSAR_TRIPULANTE 1
+INICIAR_PLANIFICACION
+PAUSAR_PLANIFICACION
+LISTAR_TRIPULANTES
+INICIAR_PLANIFICACION
+EXPULSAR_TRIPULANTE 2
+
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/plantas.txt 4|3
+INICIAR_PLANIFICACION
+
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Generales/oxigeno2.txt 4|3
+INICIAR_PLANIFICACION
+
+
+INICIAR_PATOTA 1 /home/utnso/a-mongos-pruebas/Finales/FS_PatotaA.txt 8|8
+
+
+

@@ -1,0 +1,13 @@
+#ifndef MI_RAM_HQ_SRC_MAPA_H_
+#define MI_RAM_HQ_SRC_MAPA_H_
+
+#include "utils_ram.h"
+
+NIVEL* nivel;	// Interfaz donde va a dibujarse el mapa ????????????????????????????????????
+
+void iniciar_mapa_vacio(void);
+char asignar_letra(uint32_t id_tripulante);
+int crear_tripulante(t_tripulante* tripulante);
+int mover_tripulante(t_mover_hacia* mover_hacia);
+
+#endif
